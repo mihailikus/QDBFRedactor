@@ -28,7 +28,7 @@
 #define READING_RECORDS_COUNT 40960
 
 DBFRedactor::DBFRedactor()
-	: m_fileName(0), m_codec (0), m_openMode(No), m_buffering(true), m_lastError(NoError)
+    : m_fileName(""), m_codec (0), m_openMode(No), m_buffering(true), m_lastError(NoError)
 {
 	m_codec = QTextCodec::codecForName("IBM866");
 }
@@ -131,17 +131,17 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
 
 DBFField DBFRedactor::field(int number) const
 {
-	return header.field (number);
+        return header.field (number);
 }
 
 QByteArray DBFRedactor::strRecord(int row)
 {
-	if (!m_file.isOpen() || row < 0 || row >= header.recordsCount)
+        if ( (!m_file.isOpen()) || (row < 0) || (row >= header.recordsCount()) )
 		return false;
 
 //Search in changedData
 	if (!m_changedData.isEmpty ()) {
-		for (QList <QPair<int, QByteArray> >::const_iterator end = m_changedData.end () - 1, begin = m_changedData.begin () - 1; 
+                for (QList <QPair<int, QByteArray> >::const_iterator end = m_changedData.end () - 1, begin = m_changedData.begin () - 1;
 			 end != begin; --end) {
 			if (end->first == row) {
 				return end->second;
@@ -155,22 +155,22 @@ QByteArray DBFRedactor::strRecord(int row)
 		}
 		qint64 filePos = 0;
 		if (row >= lastRecord) {
-			filePos = header.firstRecordPos + header.recordLenght * row;
+                        filePos = header.firstRecordPos() + header.recordLenght() * row;
 			lastRecord = row;
 		} else {
-			filePos = header.firstRecordPos + header.recordLenght * row - (READING_RECORDS_COUNT - 1) * header.recordLenght;
+                        filePos = header.firstRecordPos() + header.recordLenght() * row - (READING_RECORDS_COUNT - 1) * header.recordLenght();
 			lastRecord = row - READING_RECORDS_COUNT + 1;
-			if (filePos < header.firstRecordPos) {
-				filePos = header.firstRecordPos;
+                        if (filePos < header.firstRecordPos()) {
+                                filePos = header.firstRecordPos();
 				lastRecord = 0;
 			}
 		}
 		m_file.seek(filePos);
 		m_buf = m_file.read(READING_RECORDS_COUNT * header.recordLenght);
 		int pos = 0;
-		while (m_buf.size() - pos >= header.recordLenght) {
-			m_cache.insert(lastRecord++, m_buf.mid(pos, header.recordLenght));
-			pos += header.recordLenght;
+                while (m_buf.size() - pos >= header.recordLenght()) {
+                        m_cache.insert(lastRecord++, m_buf.mid(pos, header.recordLenght()));
+                        pos += header.recordLenght();
 		}
 	}
 

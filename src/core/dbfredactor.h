@@ -305,7 +305,7 @@ public:
 			m_fieldsList.push_back (DBFField (field));
 		}
 
-	DBFField field (int index)
+        DBFField field (int index) const
 		{
 			return index < m_fieldsList.size () ? m_fieldsList [index] : DBFField ();
 		}
@@ -496,9 +496,9 @@ public:
 	bool open(DBFOpenMode OpenMode);
 	void close();
 
-	QVector<DBFField> fields () const
-		{ return header.fieldsList ();}
-
+        /*QVector<DBFField> fields () const
+                { return header.fieldsList ();}
+*/
 	DBFField field(int number) const;
 
 	QByteArray strRecord(int row);

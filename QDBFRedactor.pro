@@ -13,16 +13,18 @@ MOC_DIR = build
 RCC_DIR = build
 OBJECTS_DIR = build
 
+QMAKE_CXXFLAGS += -fno-show-column
+
 # Input
-HEADERS += src/dbfredactor.h \
+HEADERS += src/core/dbfredactor.h \
     src/dbfredactordelegate.h \
     src/dbfredactormainwindow.h \
-    src/dbfredactormodel.h \
+    src/core/dbfredactormodel.h \
     src/dbfredactorpage.h \
-    src/dbfredactorsortfilterproxymodel.h \
+    src/core/dbfredactorsortfilterproxymodel.h \
     src/filterdelegate.h \
-    src/filterdialog.h \
-    src/sortdialog.h \
+    src/dialogs/filterdialog.h \
+    src/dialogs/sortdialog.h \
     src/translationmanager.h \
     src/preferences/abstractpreferencespage.h \
     src/preferences/displaypreferences.h \
@@ -30,14 +32,14 @@ HEADERS += src/dbfredactor.h \
     src/preferences/preferencesdialog.h \
     src/widgets/qtcolorbutton.h \
     src/widgets/qtfontbutton.h
-SOURCES += src/dbfredactor.cpp \
+SOURCES += src/core/dbfredactor.cpp \
     src/dbfredactordelegate.cpp \
     src/dbfredactormainwindow.cpp \
-    src/dbfredactormodel.cpp \
-    src/dbfredactorsortfilterproxymodel.cpp \
-    src/filterdialog.cpp \
+    src/core/dbfredactormodel.cpp \
+    src/core/dbfredactorsortfilterproxymodel.cpp \
+    src/dialogs/filterdialog.cpp \
     src/main.cpp \
-    src/sortdialog.cpp \
+    src/dialogs/sortdialog.cpp \
     src/translationmanager.cpp \
     src/preferences/displaypreferences.cpp \
     src/preferences/globalpreferences.cpp \
