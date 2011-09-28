@@ -152,6 +152,10 @@ DBFRedactorMainWindow::DBFRedactorMainWindow(QWidget* parent, Qt::WFlags f)
 	acionExportToXml->setIcon(QIcon(":/share/images/exportToXml.png"));
 	connect(acionExportToXml, SIGNAL(triggered()), this, SLOT(exportToXml()));
 
+        actionExportToMySQL = new QAction(this);
+        actionExportToMySQL->setIcon(QIcon(":/share/images/exportToXml.png"));
+        connect(actionExportToMySQL, SIGNAL(triggered()), this, SLOT(exportToMySQL()));
+
 	acionExportToCsv = new QAction(this);
 	acionExportToCsv->setIcon(QIcon(":/share/images/exportToCsv.png"));
 	connect(acionExportToCsv, SIGNAL(triggered()), this, SLOT(exportToCsv()));
@@ -255,6 +259,7 @@ DBFRedactorMainWindow::DBFRedactorMainWindow(QWidget* parent, Qt::WFlags f)
 	exportMenu->addAction(acionExportToHtml);
 	exportMenu->addAction(acionExportToXml);
 	exportMenu->addAction(acionExportToCsv);
+        exportMenu->addAction(actionExportToMySQL);
 
 	menuBar->addMenu(exportMenu);
 
@@ -333,6 +338,9 @@ void DBFRedactorMainWindow::retranslateStrings()
 
 	acionExportToCsv->setText(tr("Export to cs&v"));
 	acionExportToCsv->setToolTip(tr("Export to csv"));
+
+        actionExportToMySQL->setText(tr("Export to MySQL"));
+        actionExportToMySQL->setToolTip(tr("Export to MySQL"));
 
 	actionResizeColumnsToContents->setText(tr("Resize columns to contents"));
 	actionResizeColumnsToContents->setToolTip(tr("Resize columns to contents"));
@@ -553,6 +561,7 @@ void DBFRedactorMainWindow::updateActions()
 	acionExportToHtml->setEnabled(currentPage);
 	acionExportToXml->setEnabled(currentPage);
 	acionExportToCsv->setEnabled(currentPage);
+        actionExportToMySQL->setEnabled(currentPage);
 	functionComboBox->setVisible(currentPage);
 	actionSetEditMode->setEnabled(currentPage);
 	actionSave->setEnabled(currentPage);
@@ -1016,6 +1025,10 @@ void DBFRedactorMainWindow::exportToCsv()
 	progressBar = 0;
 
 	QMessageBox::information(this, "", tr("Export finished"));
+}
+
+void DBFRedactorMainWindow::exportToMySQL() {
+    qDebug() << "working on export to MySQL";
 }
 
 void DBFRedactorMainWindow::sort(int section)

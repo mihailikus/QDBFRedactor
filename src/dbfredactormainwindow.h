@@ -71,6 +71,7 @@ private:
 	QAction *acionExportToHtml;
 	QAction *acionExportToXml;
 	QAction *acionExportToCsv;
+        QAction *actionExportToMySQL;
 	QAction *actionResizeColumnsToContents;
 	QAction *actionUnsort;
 	QAction *actionChangeSort;
@@ -130,6 +131,7 @@ private Q_SLOTS:
 	void exportToHtml();
 	void exportToXml();
 	void exportToCsv();
+        void exportToMySQL();
 	void unsort();
 	void sort(int section);
 	void changeSort();
