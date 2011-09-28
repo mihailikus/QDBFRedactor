@@ -55,6 +55,8 @@
 #include "dialogs/filterdialog.h"
 #include "preferencesdialog.h"
 #include "dialogs/aboutdialog.h"
+#include "dialogs/convertToSQLdialog.h"
+#include "core/mysql_worker.h"
 
 #define ProcessEventsPeriod 500
 
@@ -124,7 +126,7 @@ DBFRedactorMainWindow::DBFRedactorMainWindow(QWidget* parent, Qt::WFlags f)
 	actionExit = new QAction(this);
 	actionExit->setIcon(QIcon(":/share/images/exit.png"));
 	actionExit->setShortcut(Qt::ALT + Qt::Key_X);
-	connect(actionExit, SIGNAL(triggered()), qApp, SLOT( quit ()));
+        connect(actionExit, SIGNAL(triggered()), qApp, SLOT( quit()) );
 
 	actionClose = new QAction(this);
 	actionClose->setIcon(QIcon(":/share/images/close.png"));
@@ -904,10 +906,10 @@ void DBFRedactorMainWindow::exportToXml()
 {
 	QSettings settings;
 	settings.beginGroup("Global");
-	const QString& fileName = QFileDialog::getSaveFileName(this,
-														   tr("Save"),
-														   settings.value("ExportPath", "'").toString() + "/" + currentPage->redactor()->tableName(),
-														   tr("XML files (*.xml)"));
+        const QString& fileName = QFileDialog::getSaveFileName(this,
+                                                               tr("Save"),
+                                                               settings.value("ExportPath", "'").toString() + "/" + currentPage->redactor()->tableName(),
+                                                               tr("XML files (*.xml)"));
 	if (fileName.isEmpty())
 		return;
 
@@ -1029,6 +1031,71 @@ void DBFRedactorMainWindow::exportToCsv()
 
 void DBFRedactorMainWindow::exportToMySQL() {
     qDebug() << "working on export to MySQL";
+    convertToSQLdialog *dlg = new convertToSQLdialog();
+    if (dlg->exec()) {
+        qDebug() << "convertion accepted";
+        db = dlg->connection();
+        if (db.isOpen()) {
+            db.close();
+            qDebug() << "connection success";
+            DBFRedactor::Header header = currentPage->redactor()->get_header();
+            QFile *file = currentPage->redactor()->get_file();
+            qDebug() << "file Name" << file->fileName();
+
+            dbConfig dbconf = dlg->getDbConfig();
+            MySQLWorker* mysql = new MySQLWorker(dbconf, "create", 1);
+            //подготавливаем шаблон создания строки и создаем таблицу
+            mysql->tbName = currentPage->redactor()->tableName();
+
+            mysql->sql = "DROP TABLE IF EXISTS`" + dbconf.dbName + "`.`" + mysql->tbName \
+                          + "`;\nCREATE TABLE `" + dbconf.dbName + "`.`" + mysql->tbName + "` (\n";
+
+            mysql->tableListValues = "\n";
+            DBFRedactor::Field field;
+            for (int i = 0; i<header.fieldsList.count() ; i++)
+            {
+                field = header.fieldsList.at(i);
+                mysql->sql += "`" + field.name + "` ";
+                mysql->tableListValues+= "`" + field.name + "` ";
+                switch (field.textType)
+                {
+
+                    case 'C':
+                        mysql->sql += " TEXT ";
+                        break;
+                    case 'N':
+                        if (field.secondLenght == 0) {
+                            mysql->sql += " INT ";
+                        } else {
+                            mysql->sql += " FLOAT ";
+                        }
+                        break;
+                    case 'D':
+                        mysql->sql += " DATE ";
+                        break;
+                    default:
+                        mysql->sql += " TEXT ";
+                }
+                if ( i < (header.fieldsList.count() -1)) {
+                    mysql->sql += ", \n";
+                    mysql->tableListValues += ", \n";
+                }
+
+            }
+            mysql->sql += " )";
+
+            qDebug() << "query: \n" << mysql->sql;
+
+            mysql->query();
+
+
+        }
+    } else {
+        return;
+    }
+
+    //read SQL parameters from dlg
+
 }
 
 void DBFRedactorMainWindow::sort(int section)

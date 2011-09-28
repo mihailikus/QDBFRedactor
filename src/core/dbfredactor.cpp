@@ -142,11 +142,13 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
 				field.type = TYPE_P;
 				break;
 		}
+                field.textType = c[11];
 
 		field.pos = header.fieldsList.isEmpty() ? 1 : header.fieldsList.last().pos + header.fieldsList.last().firstLenght;
 
 		field.firstLenght = c[16];
 		field.secondLenght = c[17];
+
 		if ((field.type == TYPE_NUMERIC) && (field.firstLenght > 18))
 			field.type=TYPE_FLOAT;
 
@@ -503,4 +505,12 @@ bool DBFRedactor::save()
 	m_modified = false;
 
 	return true;
+}
+
+DBFRedactor::Header DBFRedactor::get_header() {
+    return this->header;
+}
+
+QFile* DBFRedactor::get_file() {
+    return &m_file;
 }

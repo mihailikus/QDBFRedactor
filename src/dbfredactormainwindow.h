@@ -34,11 +34,13 @@ class QItemSelection;
 class QProgressBar;
 class QComboBox;
 class QSystemTrayIcon;
+class QSqlDatabase;
 
 #include <QtCore/QMap>
 
 #include <QtGui/QMainWindow>
 #include <QtGui/QSystemTrayIcon>
+#include <QtSql/QSqlDatabase>
 
 class DBFRedactorMainWindow : public QMainWindow
 {
@@ -115,6 +117,7 @@ private:
 	void setCurentCodec();
 	void addToHistory (const QString& fileName);
 	void updateHistoryMenu ();
+        QSqlDatabase db;
 
 protected:
 	bool event(QEvent *ev);
@@ -149,7 +152,7 @@ private Q_SLOTS:
 	void reloadSettings ();
 	void trayClicked(QSystemTrayIcon::ActivationReason reason);
 	void updateHideShowActions ();
-	void openHistory ();
+        void openHistory ();
 
 public Q_SLOTS:
 	void handleMessage(const QString& message)

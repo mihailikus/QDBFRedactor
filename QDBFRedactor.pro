@@ -15,6 +15,7 @@ OBJECTS_DIR = build
 
 QMAKE_CXXFLAGS += -fno-show-column
 QT += network
+QT += sql
 
 # Input
 HEADERS += src/core/dbfredactor.h \
@@ -39,7 +40,10 @@ HEADERS += src/core/dbfredactor.h \
     src/3dparty/qtsingleapplication/src/QtSingleApplication \
     src/3dparty/qtsingleapplication/src/qtsingleapplication.h \
     src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.h \
-    src/preferences/languagepreferences.h
+    src/preferences/languagepreferences.h \
+    src/dialogs/convertToSQLdialog.h \
+    src/core/dbconfig.h \
+    src/core/mysql_worker.h
 SOURCES += src/core/dbfredactor.cpp \
     src/dbfredactordelegate.cpp \
     src/dbfredactormainwindow.cpp \
@@ -61,7 +65,8 @@ SOURCES += src/core/dbfredactor.cpp \
     src/3dparty/qtsingleapplication/src/qtlockedfile.cpp \
     src/3dparty/qtsingleapplication/src/qtsingleapplication.cpp \
     src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.cpp \
-    src/preferences/languagepreferences.cpp
+    src/preferences/languagepreferences.cpp \
+    src/dialogs/convertToSQLdialog.cpp
 RESOURCES += resource.qrc
 TRANSLATIONS += share/translations/qdbfredactor_ru.ts
 

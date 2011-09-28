@@ -59,6 +59,7 @@ public:
 	{
 		QString name;
 		char type;
+                char textType;
 		long pos;
 		char firstLenght;
 		char secondLenght;
@@ -111,6 +112,8 @@ public:
 	bool open(DBFOpenMode OpenMode, const QString& fileName);
 	bool open(DBFOpenMode OpenMode);
 	void close();
+        Header get_header();
+        QFile *get_file();
 
 	DBFRedactor::Field field(int number) const;
 	QByteArray strRecord(int row);
