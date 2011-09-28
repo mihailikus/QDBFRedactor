@@ -35,8 +35,8 @@ class QItemSelectionModel;
 #include <QtGui/QItemSelectionModel>
 
 
-#include "dbfredactormodel.h"
-#include "dbfredactorsortfilterproxymodel.h"
+#include "core/dbfredactormodel.h"
+#include "core/dbfredactorsortfilterproxymodel.h"
 #include "dbfredactordelegate.h"
 
 class DBFRedactorPage : QObject

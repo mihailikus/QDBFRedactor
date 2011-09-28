@@ -13,36 +13,58 @@ MOC_DIR = build
 RCC_DIR = build
 OBJECTS_DIR = build
 
+QMAKE_CXXFLAGS += -fno-show-column
+QT += network
+
 # Input
-HEADERS += src/dbfredactor.h \
+HEADERS += src/core/dbfredactor.h \
     src/dbfredactordelegate.h \
     src/dbfredactormainwindow.h \
-    src/dbfredactormodel.h \
+    src/core/dbfredactormodel.h \
     src/dbfredactorpage.h \
-    src/dbfredactorsortfilterproxymodel.h \
+    src/core/dbfredactorsortfilterproxymodel.h \
     src/filterdelegate.h \
-    src/filterdialog.h \
-    src/sortdialog.h \
+    src/dialogs/filterdialog.h \
+    src/dialogs/sortdialog.h \
     src/translationmanager.h \
     src/preferences/abstractpreferencespage.h \
     src/preferences/displaypreferences.h \
     src/preferences/globalpreferences.h \
     src/preferences/preferencesdialog.h \
     src/widgets/qtcolorbutton.h \
-    src/widgets/qtfontbutton.h
-SOURCES += src/dbfredactor.cpp \
+    src/widgets/qtfontbutton.h \
+    src/dialogs/aboutdialog.h \
+    src/3dparty/qtsingleapplication/src/qtlocalpeer.h \
+    src/3dparty/qtsingleapplication/src/qtlockedfile.h \
+    src/3dparty/qtsingleapplication/src/QtSingleApplication \
+    src/3dparty/qtsingleapplication/src/qtsingleapplication.h \
+    src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.h \
+    src/preferences/languagepreferences.h
+SOURCES += src/core/dbfredactor.cpp \
     src/dbfredactordelegate.cpp \
     src/dbfredactormainwindow.cpp \
-    src/dbfredactormodel.cpp \
-    src/dbfredactorsortfilterproxymodel.cpp \
-    src/filterdialog.cpp \
+    src/core/dbfredactormodel.cpp \
+    src/core/dbfredactorsortfilterproxymodel.cpp \
+    src/dialogs/filterdialog.cpp \
     src/main.cpp \
-    src/sortdialog.cpp \
+    src/dialogs/sortdialog.cpp \
     src/translationmanager.cpp \
     src/preferences/displaypreferences.cpp \
     src/preferences/globalpreferences.cpp \
     src/preferences/preferencesdialog.cpp \
     src/widgets/qtcolorbutton.cpp \
-    src/widgets/qtfontbutton.cpp
+    src/widgets/qtfontbutton.cpp \
+    src/dialogs/aboutdialog.cpp \
+    src/3dparty/qtsingleapplication/src/qtlocalpeer.cpp \
+    src/3dparty/qtsingleapplication/src/qtlockedfile_unix.cpp \
+    src/3dparty/qtsingleapplication/src/qtlockedfile_win.cpp \
+    src/3dparty/qtsingleapplication/src/qtlockedfile.cpp \
+    src/3dparty/qtsingleapplication/src/qtsingleapplication.cpp \
+    src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.cpp \
+    src/preferences/languagepreferences.cpp
 RESOURCES += resource.qrc
 TRANSLATIONS += share/translations/qdbfredactor_ru.ts
+
+OTHER_FILES += \
+    src/3dparty/qtsingleapplication/src/qtsingleapplication.pri \
+    src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.pri

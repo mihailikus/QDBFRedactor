@@ -34,7 +34,7 @@ class QStandardItemModel;
 #include <QtCore/QHash>
 #include <QtGui/QDialog>
 
-#include "dbfredactorsortfilterproxymodel.h"
+#include "core/dbfredactorsortfilterproxymodel.h"
 
 class FilterDialog : public QDialog
 {

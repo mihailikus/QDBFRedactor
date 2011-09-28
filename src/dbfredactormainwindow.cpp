@@ -51,10 +51,10 @@
 
 #include "dbfredactormainwindow.h"
 #include "dbfredactorpage.h"
-#include "sortdialog.h"
-#include "filterdialog.h"
+#include "dialogs/sortdialog.h"
+#include "dialogs/filterdialog.h"
 #include "preferencesdialog.h"
-#include "aboutdialog.h"
+#include "dialogs/aboutdialog.h"
 
 #define ProcessEventsPeriod 500
 

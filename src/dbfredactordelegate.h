@@ -27,7 +27,7 @@
 
 #include <QtCore/QSettings>
 #include <QtGui/QItemDelegate>
-#include "dbfredactor.h"
+#include "core/dbfredactor.h"
 
 class DBFRedactorDelegate : public QItemDelegate
 {

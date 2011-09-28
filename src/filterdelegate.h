@@ -6,7 +6,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QLineEdit>
 
-#include "dbfredactorsortfilterproxymodel.h"
+#include "core/dbfredactorsortfilterproxymodel.h"
 
 class FilterDelegate : public QItemDelegate
 {

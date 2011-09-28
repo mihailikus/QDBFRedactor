@@ -33,7 +33,7 @@
 
 #include "dbfredactormainwindow.h"
 #include "translationmanager.h"
-#include "qtsingleapplication.h"
+#include "3dparty/qtsingleapplication/src/qtsingleapplication.h"
 
 #define ApplicationVersion "0.0.0.0"
 

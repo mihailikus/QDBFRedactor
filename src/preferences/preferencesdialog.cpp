@@ -34,11 +34,11 @@
 #include <QtGui/QHeaderView>
 #include <QtGui/QtEvents>
 
-#include "abstractpreferencespage.h"
-#include "preferencesdialog.h"
-#include "languagepreferences.h"
-#include "displaypreferences.h"
-#include "globalpreferences.h"
+#include "preferences/abstractpreferencespage.h"
+#include "preferences/preferencesdialog.h"
+#include "preferences/languagepreferences.h"
+#include "preferences/displaypreferences.h"
+#include "preferences/globalpreferences.h"
 
 PreferencesDialog::PreferencesDialog(QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent,f)

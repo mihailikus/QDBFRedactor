@@ -28,7 +28,7 @@
 #define READING_RECORDS_COUNT 40960
 
 DBFRedactor::DBFRedactor()
-	:m_fileName(0), m_openMode(No), m_buffering(true)
+    :m_fileName(""), m_openMode(No), m_buffering(true)
 {
 	header.recordsCount = -1;
 	m_codec = QTextCodec::codecForName("IBM866");
