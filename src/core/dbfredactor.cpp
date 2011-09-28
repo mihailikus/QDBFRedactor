@@ -104,7 +104,7 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
         //test for correct files
         //some files have DBF extention but is not really DBF files
         if ( (header.recordsCount * header.recordLenght \
-              + header.structureLength + 1) != m_file.size()) {
+              + header.structureLength) > m_file.size()) {
             header.recordsCount = 0;
             qDebug() << "Wrong DBF file. Select proper one";
             //-----IN FUTURE---
