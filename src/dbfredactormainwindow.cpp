@@ -718,7 +718,7 @@ void DBFRedactorMainWindow::copyToClipboard()
 	progressBar->setValue(0);
 	statusBar()->addWidget(progressBar, 1);
 
-	QMap<int, QString> text;
+        QMap<int, QString> text;
 	int i = 0;
 	foreach(const QModelIndex& index, indexes) {
 		i++;
@@ -1030,14 +1030,14 @@ void DBFRedactorMainWindow::exportToCsv()
 }
 
 void DBFRedactorMainWindow::exportToMySQL() {
-    qDebug() << "working on export to MySQL";
+    //qDebug() << "working on export to MySQL";
     convertToSQLdialog *dlg = new convertToSQLdialog();
     if (dlg->exec()) {
-        qDebug() << "convertion accepted";
+        //qDebug() << "convertion accepted";
         db = dlg->connection();
         if (db.isOpen()) {
             db.close();
-            qDebug() << "connection success";
+            //qDebug() << "connection success";
             DBFRedactor::Header header = currentPage->redactor()->get_header();
             QFile *file = currentPage->redactor()->get_file();
             qDebug() << "file Name" << file->fileName();
