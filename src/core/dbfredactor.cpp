@@ -99,7 +99,20 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
 	header.recordLenght = *(qint16*)cTmp;
 	header.isIndex = (c[28] == 1);
 
-	m_file.read(c, 32);
+        header.structureLength = (unsigned char) c[8] + (unsigned char) c[9]*256;
+
+        //test for correct files
+        //some files have DBF extention but is not really DBF files
+        if ( (header.recordsCount * header.recordLenght \
+              + header.structureLength + 1) != m_file.size()) {
+            header.recordsCount = 0;
+            qDebug() << "Wrong DBF file. Select proper one";
+            //-----IN FUTURE---
+            //make using of false returning from open function
+            return false;
+        }
+
+        m_file.read(c, 32);
 	do {
 		Field field;
 		m_buf.clear();

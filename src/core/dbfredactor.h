@@ -71,6 +71,7 @@ public:
 		qint32 recordsCount;
 		qint16 firstRecordPos;
 		qint16 recordLenght;
+                qint16 structureLength;
 		bool isIndex;
 		QList<Field> fieldsList;
 	};
