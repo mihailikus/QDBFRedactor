@@ -6,8 +6,11 @@ This is fork of [QDBFRedactor](https://github.com/panter-dsd/QDBFRedactor) writt
 Features:
 ---------
 Read:
+
 -DBF files
+
 Convert:
+
 - html
 - xml
 - cvs
