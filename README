@@ -1,8 +1,0 @@
-README
-------
-
-QDBFRedactor can read DBF files and convert it to any following formats:
-    - html
-    - xml
-    - cvs
-    - it also can upload data to MySQL server
