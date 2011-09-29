@@ -125,7 +125,7 @@ DBFRedactorMainWindow::DBFRedactorMainWindow(QWidget* parent, Qt::WFlags f)
 
 	actionExit = new QAction(this);
 	actionExit->setIcon(QIcon(":/share/images/exit.png"));
-	actionExit->setShortcut(Qt::ALT + Qt::Key_X);
+        actionExit->setShortcut(Qt::CTRL + Qt::Key_Q);
         connect(actionExit, SIGNAL(triggered()), qApp, SLOT( quit()) );
 
 	actionClose = new QAction(this);
