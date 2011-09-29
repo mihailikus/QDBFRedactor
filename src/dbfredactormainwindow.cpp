@@ -1089,13 +1089,124 @@ void DBFRedactorMainWindow::exportToMySQL() {
             mysql->query();
 
 
+            for (int i = 0; i < view->model()->rowCount(); i++) {
+            //for (int i = 0; i < 10; i++) {
+                    if (view->isRowHidden(i))
+                            continue;
+
+                 QString tempString = "INSERT INTO `" + \
+                         dbconf.dbName + "`.`" + \
+                         currentPage->redactor()->tableName() + \
+                         "` (";
+
+
+                 for (int i = 0; i < view->model()->columnCount(); i++) {
+                         tempString += view->model()->headerData(i, Qt::Horizontal, Qt::EditRole).toString();
+                         if (i<(view->model()->columnCount()-1)) {
+                             tempString += ", \n";
+                         }
+                 }
+
+                 tempString += ") VALUES (";
+                    for (int j = 0; j < view->model()->columnCount(); j++) {
+                            const QVariant& value = view->model()->index(i, j).data(Qt::DisplayRole);
+                            QString stringValue;
+
+                            switch(currentPage->redactor()->field(view->model()->index(i, j).column()).type) {
+                                    case DBFRedactor::TYPE_DATE:
+                                            stringValue = " DATE_FORMAT ('" + \
+                                                    value.toDate().toString(Qt::SystemLocaleShortDate) +
+                                                    "', '%Y%m%d') ";
+                                            break;
+                                    case DBFRedactor::TYPE_LOGICAL:
+                                            stringValue = value.toBool() ? tr("Yes") : tr("No");
+                                            break;
+                                    case DBFRedactor::TYPE_CHAR:
+                                            stringValue = "'" + value.toString() + "'";
+                                    default:
+                                            stringValue = "'" + value.toString() + "'";
+                            }
+                            tempString += stringValue;
+                            if (j<(view->model()->columnCount()-1)) {
+                                tempString += ", ";
+                            }
+
+                    }
+
+                    tempString += ")";
+                    //qDebug() << "SQL is \n" <<  tempString;
+                    mysql->query(tempString);
+
+                   }
+
+            mysql->close();
+/*
+            //=============================
+            //start converting to MySQL after prepair
+
+            file->seek(header.structureLength);
+
+            //ui_progressBar->setMaximum(100);
+            //ui_progressBar->setValue(0);
+
+            int fileSize = header.recordsCount * header.recordLenght;
+
+            qDebug() << fileSize;
+            char * all_records;
+            all_records = (char*) malloc(fileSize);
+
+            file->seek(header.structureLength);
+            file->read(all_records, fileSize);
+
+            int NumberOfProc;
+
+            NumberOfProc = dlg->get_number_proc();
+
+            if (header.recordsCount < 100) {
+                //Prevent using threads on small files
+                NumberOfProc = 1;
+            }
+
+            int DataForOneProc = header.recordsCount / NumberOfProc;
+            if ( (DataForOneProc*NumberOfProc) < header.recordsCount) {
+                DataForOneProc++;
+            }
+
+            int OnePercent = DataForOneProc / 100 + 1;
+
+            for (int i = 0; i<NumberOfProc; i++)
+            {
+                qDebug() << "i=" << i;
+                //int DataPos = i*DataForOneProc;
+
+                myThread[i] = new dbf2sql(dbconf, \
+                                          header, \
+                                          DataForOneProc, \
+                                          i, \
+                                          OnePercent, \
+                                          dlg->get_max_sql(), \
+                                          mysql->tableListValues);
+
+                //myThread[i] = new dbf2sql(mysql, mydbf, DataPos, DataForOneProc, i, OnePercent);
+                //connect(myThread[i], SIGNAL(some_work_done()), SLOT(update_progress()));
+                //connect(myThread[i], SIGNAL(finished()), SLOT(finish_progress()));
+                myThread[i]->start();
+                qDebug() << "And " << i << " was runed";
+
+
+                //qDebug() << DataPos;
+
+            }
+
+*/
+
+
         }
     } else {
         return;
     }
 
-    //read SQL parameters from dlg
-
+    qDebug() << "main proc fin";
 }
 
 void DBFRedactorMainWindow::sort(int section)

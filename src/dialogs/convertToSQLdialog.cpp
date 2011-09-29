@@ -61,7 +61,7 @@ convertToSQLdialog::convertToSQLdialog (QWidget *parent, Qt::WFlags f) {
     mainLayout->addWidget(ui_maxProc, 4, 1);
     mainLayout->addWidget(ui_maxSQL, 4, 3);
     ui_maxProc->setMinimum(1);
-    ui_maxProc->setMaximum(20);
+    ui_maxProc->setMaximum(50); //it is fixed value for create threads
     ui_maxSQL->setMinimum(10);
     ui_maxSQL->setMaximum(1000);
     ui_maxSQL->setValue(300);
@@ -110,4 +110,13 @@ dbConfig convertToSQLdialog::getDbConfig() {
     conf.dbUser = ui_dbUser->text();
     conf.dbPass = ui_dbPass->text();
     return conf;
+}
+
+
+int convertToSQLdialog::get_number_proc() {
+    return ui_maxProc->value();
+}
+
+int convertToSQLdialog::get_max_sql() {
+    return ui_maxSQL->value();
 }

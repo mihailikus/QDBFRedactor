@@ -41,6 +41,7 @@ class QSqlDatabase;
 #include <QtGui/QMainWindow>
 #include <QtGui/QSystemTrayIcon>
 #include <QtSql/QSqlDatabase>
+#include "core/dbf-thread.h"
 
 class DBFRedactorMainWindow : public QMainWindow
 {
@@ -96,6 +97,9 @@ private:
 	QSystemTrayIcon *trayIcon;
 
 	QStringList m_history;
+
+        dbf2sql* myThread[50];
+
 
 public:
 	DBFRedactorMainWindow(QWidget* parent = 0, Qt::WFlags f = 0);

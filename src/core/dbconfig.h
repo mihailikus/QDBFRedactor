@@ -11,6 +11,7 @@ public:
     QString dbName;
     QString dbUser;
     QString dbPass;
+    QString tbName;
 };
 
 #endif // DBCONFIG_H

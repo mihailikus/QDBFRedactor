@@ -43,7 +43,8 @@ HEADERS += src/core/dbfredactor.h \
     src/preferences/languagepreferences.h \
     src/dialogs/convertToSQLdialog.h \
     src/core/dbconfig.h \
-    src/core/mysql_worker.h
+    src/core/mysql_worker.h \
+    src/core/dbf-thread.h
 SOURCES += src/core/dbfredactor.cpp \
     src/dbfredactordelegate.cpp \
     src/dbfredactormainwindow.cpp \

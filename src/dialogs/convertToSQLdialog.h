@@ -26,6 +26,8 @@ public:
 
         dbConfig getDbConfig();
         QSqlDatabase connection();
+        int get_number_proc();
+        int get_max_sql();
 
 
 private:

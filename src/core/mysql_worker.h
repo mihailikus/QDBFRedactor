@@ -10,7 +10,7 @@ class MySQLWorker : public dbConfig, public QSqlDatabase {
 public:
     QString tableListValues;    //rows for insert-sql-query (already formatted)
     QString sql;
-    QString tbName;
+    //QString tbName;
     QSqlDatabase db;
     int NumberOfMaxSQL;
     int CurrentSQL;
