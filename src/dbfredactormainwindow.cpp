@@ -1088,56 +1088,71 @@ void DBFRedactorMainWindow::exportToMySQL() {
 
             mysql->query();
 
+            //получаем общую строку вида INSERT INTO... VALUES
+            QString preparedString = "INSERT INTO `" + \
+                    dbconf.dbName + "`.`" + \
+                    currentPage->redactor()->tableName() + \
+                    "` (";
+            for (int i =0; i < view->model()->columnCount(); i++) {
+                preparedString += view->model()->headerData(i, Qt::Horizontal, Qt::EditRole).toString();
+                if (i<(view->model()->columnCount()-1)) {
+                    preparedString += ", ";
+                }
+            }
+            preparedString += ") VALUES (\n";
 
-            for (int i = 0; i < view->model()->rowCount(); i++) {
-            //for (int i = 0; i < 10; i++) {
-                    if (view->isRowHidden(i))
-                            continue;
 
-                 QString tempString = "INSERT INTO `" + \
-                         dbconf.dbName + "`.`" + \
-                         currentPage->redactor()->tableName() + \
-                         "` (";
+            int startPos;
+            int endPos = 500;
+            int currentSQL = 0;
+            int maxSQL = 2;
 
+            startPos = 0;
+            //endPos = view->model()->rowCount();
+            maxSQL = dlg->get_max_sql();
 
-                 for (int i = 0; i < view->model()->columnCount(); i++) {
-                         tempString += view->model()->headerData(i, Qt::Horizontal, Qt::EditRole).toString();
-                         if (i<(view->model()->columnCount()-1)) {
-                             tempString += ", \n";
-                         }
-                 }
+            QString tempString;
+            for (int i = startPos; i < endPos; i++) {
+                if (view->isRowHidden(i))
+                        continue;
 
-                 tempString += ") VALUES (";
-                    for (int j = 0; j < view->model()->columnCount(); j++) {
-                            const QVariant& value = view->model()->index(i, j).data(Qt::DisplayRole);
-                            QString stringValue;
+                for (int j = 0; j < view->model()->columnCount(); j++) {
+                    const QVariant& value = view->model()->index(i, j).data(Qt::DisplayRole);
+                    QString stringValue;
 
-                            switch(currentPage->redactor()->field(view->model()->index(i, j).column()).type) {
-                                    case DBFRedactor::TYPE_DATE:
-                                            stringValue = " DATE_FORMAT ('" + \
-                                                    value.toDate().toString(Qt::SystemLocaleShortDate) +
-                                                    "', '%Y%m%d') ";
-                                            break;
-                                    case DBFRedactor::TYPE_LOGICAL:
-                                            stringValue = value.toBool() ? tr("Yes") : tr("No");
-                                            break;
-                                    case DBFRedactor::TYPE_CHAR:
-                                            stringValue = "'" + value.toString() + "'";
-                                    default:
-                                            stringValue = "'" + value.toString() + "'";
-                            }
-                            tempString += stringValue;
-                            if (j<(view->model()->columnCount()-1)) {
-                                tempString += ", ";
-                            }
-
+                    switch(currentPage->redactor()->field(view->model()->index(i, j).column()).type) {
+                        case DBFRedactor::TYPE_DATE:
+                                stringValue = " DATE_FORMAT ('" + \
+                                        value.toDate().toString("%Y%m%d") +
+                                        "', '%Y%m%d') ";
+                                break;
+                        case DBFRedactor::TYPE_LOGICAL:
+                                stringValue = value.toBool() ? tr("Yes") : tr("No");
+                                break;
+                        case DBFRedactor::TYPE_CHAR:
+                                stringValue = "'" + value.toString() + "'";
+                        default:
+                                stringValue = "'" + value.toString() + "'";
+                    }
+                    tempString += stringValue;
+                    if (j<(view->model()->columnCount()-1)) {
+                        tempString += ", ";
                     }
 
+                }
+
+                if (currentSQL == maxSQL || i==endPos-startPos-1) {
                     tempString += ")";
+                    tempString = preparedString + tempString;
                     //qDebug() << "SQL is \n" <<  tempString;
                     mysql->query(tempString);
+                    tempString = "";
+                } else {
+                    tempString += "), (";
+                }
 
-                   }
+
+            }
 
             mysql->close();
 /*
