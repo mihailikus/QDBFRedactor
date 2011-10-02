@@ -1038,68 +1038,64 @@ void DBFRedactorMainWindow::exportToMySQL() {
         if (db.isOpen()) {
             db.close();
             //qDebug() << "connection success";
-            DBFRedactor::Header header = currentPage->redactor()->get_header();
-            QFile *file = currentPage->redactor()->get_file();
-            qDebug() << "file Name" << file->fileName();
 
             dbConfig dbconf = dlg->getDbConfig();
             MySQLWorker* mysql = new MySQLWorker(dbconf, "create", 1);
-            //подготавливаем шаблон создания строки и создаем таблицу
-            mysql->tbName = currentPage->redactor()->tableName();
-
-            mysql->sql = "DROP TABLE IF EXISTS`" + dbconf.dbName + "`.`" + mysql->tbName \
-                          + "`;\nCREATE TABLE `" + dbconf.dbName + "`.`" + mysql->tbName + "` (\n";
-
-            mysql->tableListValues = "\n";
-            DBFRedactor::Field field;
-            for (int i = 0; i<header.fieldsList.count() ; i++)
-            {
-                field = header.fieldsList.at(i);
-                mysql->sql += "`" + field.name + "` ";
-                mysql->tableListValues+= "`" + field.name + "` ";
-                switch (field.textType)
-                {
-
-                    case 'C':
-                        mysql->sql += " TEXT ";
-                        break;
-                    case 'N':
-                        if (field.secondLenght == 0) {
-                            mysql->sql += " INT ";
-                        } else {
-                            mysql->sql += " FLOAT ";
-                        }
-                        break;
-                    case 'D':
-                        mysql->sql += " DATE ";
-                        break;
-                    default:
-                        mysql->sql += " TEXT ";
-                }
-                if ( i < (header.fieldsList.count() -1)) {
-                    mysql->sql += ", \n";
-                    mysql->tableListValues += ", \n";
-                }
-
-            }
-            mysql->sql += " )";
-
-            qDebug() << "query: \n" << mysql->sql;
-
-            mysql->query();
 
             //получаем общую строку вида INSERT INTO... VALUES
+            //и в этом же цикле создаем запрос на создание таблицы
+            QString createString = "DROP TABLE IF EXISTS`" +
+                    dbconf.dbName + "`.`" +
+                    currentPage->redactor()->tableName() +
+                    "`; CREATE TABLE `" +
+                    dbconf.dbName +
+                    "`.`" + currentPage->redactor()->tableName() +
+                    "` (";
+
             QString preparedString = "INSERT INTO `" + \
                     dbconf.dbName + "`.`" + \
                     currentPage->redactor()->tableName() + \
                     "` (";
+            DBFRedactor::Header curHeader = currentPage->redactor()->get_header();
+            DBFRedactor::Field curField;
             for (int i =0; i < view->model()->columnCount(); i++) {
-                preparedString += view->model()->headerData(i, Qt::Horizontal, Qt::EditRole).toString();
+                QString rowName = view->model()->headerData(i, Qt::Horizontal, Qt::EditRole).toString();
+                preparedString += rowName;
+                createString += "`" + rowName + "` ";
+                curField = curHeader.fieldsList.at(i);
+                //qDebug () << curField.textType;
+                switch (currentPage->redactor()->field(view->model()->index(0, i).column()).type)
+                {
+
+                    case DBFRedactor::TYPE_CHAR:
+                        createString += " TEXT ";
+                        break;
+                    case DBFRedactor::TYPE_NUMERIC:
+                        if (curField.secondLenght == 0) {
+                            createString += " INT ";
+                        } else {
+                            createString += " FLOAT ";
+                        }
+                        break;
+                    case DBFRedactor::TYPE_DATE:
+                        createString += " DATE ";
+                        break;
+                    default:
+                        createString += " TEXT ";
+                        //not supported other types yet. I need learning in mysql
+                }
+
                 if (i<(view->model()->columnCount()-1)) {
                     preparedString += ", ";
+                    createString += ", ";
                 }
             }
             preparedString += ") VALUES (\n";
+            createString += ") ";
+            qDebug() << "Create string is \n" << createString;
+
+            mysql->sql = createString;
+            mysql->query();
 
 
             int startPos;
@@ -1108,7 +1104,7 @@ void DBFRedactorMainWindow::exportToMySQL() {
             int maxSQL = 2;
 
             startPos = 0;
-            //endPos = view->model()->rowCount();
+            endPos = view->model()->rowCount();
             maxSQL = dlg->get_max_sql();
 
             QString tempString;
