@@ -62,10 +62,10 @@ convertToSQLdialog::convertToSQLdialog (QWidget *parent, Qt::WFlags f) {
     mainLayout->addWidget(ui_maxSQL, 4, 3);
     ui_maxProc->setMinimum(1);
     ui_maxProc->setMaximum(50); //it is fixed value for create threads
-    ui_maxSQL->setMinimum(10);
+    ui_maxSQL->setMinimum(1);
     ui_maxSQL->setMaximum(1000);
-    ui_maxSQL->setValue(300);
-    ui_maxProc->setValue(2);
+    ui_maxSQL->setValue(3);
+    ui_maxProc->setValue(1);
 
 
     setLayout(mainLayout);

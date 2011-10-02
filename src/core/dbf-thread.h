@@ -2,9 +2,11 @@
 #define DBFTHREAD_H
 
 #include <QtGui>
+#include <QTableView>
 #include "core/mysql_worker.h"
 #include "core/dbconfig.h"
 #include "core/dbfredactor.h"
+#include "dbfredactorpage.h"
 //#include "sql.h"
 //#include "dbf.h"
 //#include "dbfreader.h"
@@ -12,49 +14,40 @@
 class dbf2sql : public QThread {
 Q_OBJECT
 private:
-    int m_nValue;
+    int stopValue;
 
     dbConfig mysql;
-    DBFRedactor::Header mydbf;
     MySQLWorker *connection;
+    QTableView *view;
+    DBFRedactorPage *currentPage;
     int dbfFieldsCount;
 
     int DataPos;
     int DataForOneProc;
     int ThreadNumber;
     int OnePercent;
-    int MaxSQL;
+    int maxSQL;
     int CurSQL;
-
-    QString tableListValues;
-
-    char * all_records;
-
-    QChar one_byte; //для экранирования символов, чтоб не объявлять в цикле
-
-
     QString sql;    //для хранения SQL-запроса
+    QString preparedString; //подготовленное начало запроса
 
 public:
-    dbf2sql(dbConfig sql, DBFRedactor::Header dbf, \
+    dbf2sql(dbConfig sql, QTableView *curView, DBFRedactorPage *page, \
             int ForOneProc, int Number, int one_percent, int maxSQL, \
             QString prepared_string) \
-        : m_nValue(10)
+        : stopValue(10)
     {
 
         DataPos = Number * ForOneProc;
         DataForOneProc = ForOneProc;
         ThreadNumber = Number;
-        //mysql = new dbConfig;
         mysql = sql;
-        //mydbf = new DBFRedactor::Header;
-        mydbf = dbf;
+        view = curView;
+        currentPage = page;
         OnePercent = one_percent;
         CurSQL = maxSQL;
-        MaxSQL = maxSQL;
-        dbfFieldsCount = mydbf.recordsCount;
-        tableListValues = prepared_string;
-
+        maxSQL = maxSQL;
+        preparedString = prepared_string;
     }
 
     void run()
@@ -62,7 +55,7 @@ public:
         qDebug() << "Potok" << ThreadNumber << "thread started";
 
         connection = new MySQLWorker(mysql, "thread" + \
-                                     QString::number(ThreadNumber), MaxSQL);
+                                     QString::number(ThreadNumber), maxSQL);
         qDebug() << "connection created";
         //connection->tbName = mysql->tbName;
         bool ok_connect = connection->db.open();
@@ -70,25 +63,85 @@ public:
             return;
         }
         qDebug () << ok_connect;
-        sql = "";
+
+        sql = preparedString;
+
+        QString tempString;
+        tempString = "";
         while ( (DataPos < DataForOneProc*(ThreadNumber+1)) \
-                && (DataPos < mydbf.recordsCount) \
-                && (m_nValue)) {
-            qDebug() << "Potok" << ThreadNumber << "in th data pos  = " << DataPos;
-            //
-            //update_record_signal(DataPos);
-            update_one_record(DataPos);
+                && (DataPos < view->model()->rowCount()) \
+                && (stopValue)) {
+            //qDebug() << "pos " << DataPos;
+            //qDebug() << "maxSQL " << maxSQL;
+            //update one record
+            if (view->isRowHidden(DataPos))
+                    continue;
 
+            for (int j = 0; j < view->model()->columnCount(); j++) {
+                const QVariant& value = view->model()->index(DataPos, j).data(Qt::DisplayRole);
+                QString stringValue;
 
+                switch(currentPage->redactor()->field(view->model()->index(DataPos, j).column()).type) {
+                    case DBFRedactor::TYPE_DATE:
+                            stringValue = " DATE_FORMAT ('" + \
+                                    value.toDate().toString("%Y%m%d") +
+                                    "', '%Y%m%d') ";
+                            break;
+                    case DBFRedactor::TYPE_LOGICAL:
+                            //qDebug() << "Logical";
+                            stringValue = "'" + (value.toBool() ? tr("Yes") : tr("No")) +"'";
+                            break;
+                    case DBFRedactor::TYPE_CHAR:
+                            stringValue = "'" + value.toString() + "'";
+                            break;
+                    default:
+                            //qDebug() << "Default " << j << ", datapos " << DataPos;
+                            stringValue = "'" + value.toString() + "'";
+                }
+                if (stringValue == "''")
+                    stringValue = "' '";
+                tempString += stringValue;
+                if (j<(view->model()->columnCount()-1)) {
+                    tempString += ", ";
+                } else {
+                    tempString += ") ";
+                }
+
+            }
             DataPos++;
-            //qDebug() << "Potok" << ThreadNumber << "in th next data pos  = " << DataPos;
+            if (CurSQL == maxSQL) {
+                sql += tempString;
+                tempString ="";
+                //qDebug() << "SQL ============= " << sql;
+                connection->query(sql);
+                CurSQL = 1;
+
+                sql = preparedString;
+
+            } else {
+
+                //qDebug() << "temp string == " << tempString;
+                tempString +=", (";
+                CurSQL++;
+            }
+
 
         }
-        if (sql != "" ) {
-            //qDebug() << this->ThreadNumber << " LAST SQL" << sql;
+
+        if (tempString != "") {
+
+            tempString.remove(tempString.length()-4, 4);
+            //qDebug() << "==============" << tempString[0, tempString.length()-2];
+            sql+= tempString;
+            //qDebug() << "FINISH SQL ============= " << sql;
+
             connection->query(sql);
         }
+
+
+
         connection->db.close();
+        qDebug() << "Potok " << ThreadNumber << " finished";
         emit finished();
 
         exec();
@@ -102,133 +155,11 @@ private slots:
 
 
 public slots:
-    void update_one_record(int DataPos)
-    {
-        qDebug() << "Potok" << ThreadNumber <<"update one record started";
-        //данные берем из общего массива all_records, куда предварительно считали файл
-
-        //синтаксический разбор полученной строчки из таблицы, учитывая заголовок и тип данных
-        if (all_records[DataPos*mydbf.recordLenght] == 32) {
-            //qDebug() << "record is not deleted";
-        } else {
-            qDebug() << "number" << DataPos << "record is DEL";
-        }
-            int pos = DataPos*mydbf.recordLenght + 1;
-            if (CurSQL == MaxSQL) {
-                //qDebug() << "-----------------------";
-                //qDebug() << sql;
-                //qDebug() << "-----------------------";
-                connection->query(sql);
-                CurSQL = 0;
-
-                sql = "INSERT INTO `" + mysql.dbName + "`.`" + mysql.tbName + "` (";
-                sql+= tableListValues;
-                sql+= " ) VALUES (";
-                qDebug() << "tra-ta-ta" << sql;
-            } else {
-
-                sql+=", \n (";
-                //qDebug() << "tralivali" << CurSQL;
-                CurSQL++;
-
-            }
-            DBFRedactor::Field field;
-
-            for (int i = 0; i<dbfFieldsCount; i++) {
-                    //qDebug() << this->ThreadNumber << " thread, i=" << i;
-                    field = mydbf.fieldsList.at(i);
-
-                    int len = field.firstLenght;
-
-                    QChar ftype = field.textType;
-                    QString fstring = "";
-
-                    //все данные хранятся в ASCII-виде
-                    //считываем ячейку
-                    for (int j=0; j<len; j++)
-                    {
-                        this->one_byte = QChar::fromAscii(all_records[pos+j]);
-                        if (one_byte == '\'' || one_byte == '\\') {
-                            fstring += "\\";
-                        }
-                        fstring += one_byte;
-                    }
-                    //sql+= "'";
-
-                    switch (ftype.toAscii())
-                    {
-
-                    case 'C':
-                        //qDebug() << "Line " << fname << " is string";
-                        sql += "'" + fstring + "'";
-                               //mydbf->codec->toUnicode(fstring.toAscii()) + "'";
-                        //sql += "'some data'";
-                        //sql += fstring;
-
-                        //qDebug() << fname << fstring << len;
-                        break;
-                    case 'N':
-                        //qDebug() << fname << " is numeric";
-                        float value;
-                        value = fstring.toFloat();
-                        sql+= "'" + fstring + "'";
-                        //qDebug() << fname << "=" << value << fstring << len;
-                        break;
-                    case 'D':
-                        //qDebug() << fname << " is date";
-                        //DATE_FORMAT('20120311', '%Y%m%d')
-                        sql += " DATE_FORMAT ('" + fstring + "', '%Y%m%d') ";
-                        //qDebug () << fname << "=" << fdate;
-                        break;
-                    default:
-                        //qDebug() << fname << " is unsupported type";
-                        break;
-                    }
-                    //sql+= "'";
-                    //qDebug () << "swich correct";
-                    pos += len;
-                    if (i<(mydbf.fieldsList.count()-1)) {
-                        sql += ", \n";
-                    }
-
-                }
-                sql += ")";
-
-                qDebug() << "new sql \n" << sql;
-
-
-            //connection->db.exec(sql);
-            //ui_textEdit->append(sql);
-            //qDebug() << sql;
-
-            int work = (DataPos-DataForOneProc) % OnePercent;
-
-            if ( !work)
-            {
-                //sql = "";
-                qDebug() << "One more % done";
-                emit some_work_done();
-            }
-/*
-        } else {
-            //если запись удалена - нафиг ничего не делать
-            qDebug() << "Potok" << ThreadNumber << "record is DEL";
-        }
-*/
-        //qDebug () << "Potok" << ThreadNumber << "going up";
-
-    }
 
     void stop()
     {
-        m_nValue = 0;
+        stopValue = 0;
     }
-    /*
-    void test(dbfReader* parent)
-    {
-        qDebug() << parent->NumberOfProc;
-    }
-    */
 };
 
 
