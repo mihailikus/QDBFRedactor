@@ -33,7 +33,7 @@ private:
 
 public:
     dbf2sql(dbConfig sql, QTableView *curView, DBFRedactorPage *page, \
-            int ForOneProc, int Number, int one_percent, int maxSQL, \
+            int ForOneProc, int Number, int one_percent, int maximumSQL, \
             QString prepared_string) \
         : stopValue(10)
     {
@@ -45,8 +45,8 @@ public:
         view = curView;
         currentPage = page;
         OnePercent = one_percent;
-        CurSQL = maxSQL;
-        maxSQL = maxSQL;
+        CurSQL = maximumSQL;
+        maxSQL = maximumSQL;
         preparedString = prepared_string;
     }
 
@@ -71,60 +71,66 @@ public:
         while ( (DataPos < DataForOneProc*(ThreadNumber+1)) \
                 && (DataPos < view->model()->rowCount()) \
                 && (stopValue)) {
-            //qDebug() << "pos " << DataPos;
+            //qDebug() << "DataPos " << DataPos;
             //qDebug() << "maxSQL " << maxSQL;
             //update one record
-            if (view->isRowHidden(DataPos))
-                    continue;
+            if (!view->isRowHidden(DataPos)){
+                //qDebug() <<"curSQL" << CurSQL;
 
-            for (int j = 0; j < view->model()->columnCount(); j++) {
-                const QVariant& value = view->model()->index(DataPos, j).data(Qt::DisplayRole);
-                QString stringValue;
+                for (int j = 0; j < view->model()->columnCount(); j++) {
+                    //qDebug() << "Thread-" << ThreadNumber <<  " 1j=" << j;
+                    const QVariant& value = view->model()->index(DataPos, j).data(Qt::DisplayRole);
+                    //qDebug() << "Thread-" << ThreadNumber <<  " 2j=" << j;
+                    QString stringValue;
 
-                switch(currentPage->redactor()->field(view->model()->index(DataPos, j).column()).type) {
-                    case DBFRedactor::TYPE_DATE:
-                            stringValue = " DATE_FORMAT ('" + \
-                                    value.toDate().toString("%Y%m%d") +
-                                    "', '%Y%m%d') ";
-                            break;
-                    case DBFRedactor::TYPE_LOGICAL:
-                            //qDebug() << "Logical";
-                            stringValue = "'" + (value.toBool() ? tr("Yes") : tr("No")) +"'";
-                            break;
-                    case DBFRedactor::TYPE_CHAR:
-                            stringValue = "'" + value.toString() + "'";
-                            break;
-                    default:
-                            //qDebug() << "Default " << j << ", datapos " << DataPos;
-                            stringValue = "'" + value.toString() + "'";
+                    switch(currentPage->redactor()->field(view->model()->index(DataPos, j).column()).type) {
+                        case DBFRedactor::TYPE_DATE:
+                                stringValue = "'" + \
+                                        value.toDate().toString("yyyy.MM.dd") +
+                                        "'";
+                                //qDebug() << "DATE: " << stringValue;
+                                break;
+                        case DBFRedactor::TYPE_LOGICAL:
+                                //qDebug() << "Logical";
+                                stringValue = "'" + (value.toBool() ? tr("Yes") : tr("No")) +"'";
+                                break;
+                        case DBFRedactor::TYPE_CHAR:
+                                stringValue = "'" + value.toString() + "'";
+                                break;
+                        default:
+                                //qDebug() << "Default " << j << ", datapos " << DataPos;
+                                stringValue = "'" + value.toString() + "'";
+                    }
+                    if (stringValue == "''")
+                        stringValue = "' '";
+                    //qDebug() << "Thread-" << ThreadNumber <<  " --2" ;
+                    tempString += stringValue;
+                    if (j<(view->model()->columnCount()-1)) {
+                        tempString += ", ";
+                    } else {
+                        tempString += ") ";
+                    }
+
                 }
-                if (stringValue == "''")
-                    stringValue = "' '";
-                tempString += stringValue;
-                if (j<(view->model()->columnCount()-1)) {
-                    tempString += ", ";
+                qDebug() << "Thread-" << ThreadNumber <<  " --3";
+                DataPos++;
+                if (CurSQL == maxSQL) {
+                    sql += tempString;
+                    tempString ="";
+                    //qDebug() << "SQL ============= " << sql;
+                    connection->query(sql);
+                    CurSQL = 1;
+
+                    sql = preparedString;
+
                 } else {
-                    tempString += ") ";
+
+                    //qDebug() << "temp string == " << tempString;
+                    tempString +=", (";
+                    CurSQL++;
                 }
 
             }
-            DataPos++;
-            if (CurSQL == maxSQL) {
-                sql += tempString;
-                tempString ="";
-                //qDebug() << "SQL ============= " << sql;
-                connection->query(sql);
-                CurSQL = 1;
-
-                sql = preparedString;
-
-            } else {
-
-                //qDebug() << "temp string == " << tempString;
-                tempString +=", (";
-                CurSQL++;
-            }
-
 
         }
 

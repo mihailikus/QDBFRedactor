@@ -120,9 +120,6 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
 			m_buf.append(c[i]);
 		field.name = m_codec->toUnicode(m_buf);
 		switch (c[11]) {
-			case 'C':
-				field.type = TYPE_CHAR;
-				break;
 			case 'N':
 				field.type = TYPE_NUMERIC;
 				break;
@@ -141,8 +138,10 @@ bool DBFRedactor::open(DBFOpenMode OpenMode, const QString& fileName)
 			case 'P':
 				field.type = TYPE_P;
 				break;
+                        case 'C': default:
+                                field.type = TYPE_CHAR;
+                                break;
 		}
-                field.textType = c[11];
 
 		field.pos = header.fieldsList.isEmpty() ? 1 : header.fieldsList.last().pos + header.fieldsList.last().firstLenght;
 
