@@ -2,7 +2,9 @@
 #include "src/dialogs/convertToSQLdialog.h"
 
 
-convertToSQLdialog::convertToSQLdialog (QWidget *parent, Qt::WFlags f) {
+convertToSQLdialog::convertToSQLdialog (QWidget *parent, Qt::WFlags f)
+    :QDialog(parent, f)
+{
     this->resize(600, 200);
     is_connected = false;
 

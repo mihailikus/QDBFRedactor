@@ -57,6 +57,7 @@
 #include "dialogs/aboutdialog.h"
 #include "dialogs/convertToSQLdialog.h"
 #include "core/mysql_worker.h"
+#include "dialogs/stopProcessDialog.h"
 
 #define ProcessEventsPeriod 500
 
@@ -1031,7 +1032,7 @@ void DBFRedactorMainWindow::exportToCsv()
 
 void DBFRedactorMainWindow::exportToMySQL() {
     //qDebug() << "working on export to MySQL";
-    convertToSQLdialog *dlg = new convertToSQLdialog();
+    convertToSQLdialog *dlg = new convertToSQLdialog(this);
     if (dlg->exec()) {
         //qDebug() << "convertion accepted";
         db = dlg->connection();
@@ -1044,6 +1045,7 @@ void DBFRedactorMainWindow::exportToMySQL() {
 
             //получаем общую строку вида INSERT INTO... VALUES
             //и в этом же цикле создаем запрос на создание таблицы
+            //а также создаем список типов полей
             QString createString = "DROP TABLE IF EXISTS`" +
                     dbconf.dbName + "`.`" +
                     currentPage->redactor()->tableName() +
@@ -1056,6 +1058,8 @@ void DBFRedactorMainWindow::exportToMySQL() {
                     dbconf.dbName + "`.`" + \
                     currentPage->redactor()->tableName() + \
                     "` (";
+
+            //QList<DBFRedactor::Field> fields_descr;
             DBFRedactor::Header curHeader = currentPage->redactor()->get_header();
             DBFRedactor::Field curField;
             for (int i =0; i < view->model()->columnCount(); i++) {
@@ -1084,7 +1088,7 @@ void DBFRedactorMainWindow::exportToMySQL() {
                         createString += " TEXT ";
                         //not supported other types yet. I need learning in mysql
                 }
-
+                //types << currentPage->redactor()->field(view->model()->index(0, i).column()).type;
                 if (i<(view->model()->columnCount()-1)) {
                     preparedString += ", ";
                     createString += ", ";
@@ -1095,6 +1099,7 @@ void DBFRedactorMainWindow::exportToMySQL() {
             qDebug() << "Create string is \n" << createString;
 
             mysql->sql = createString;
+            qDebug() << "1";
             mysql->query();
             mysql->close();
 
@@ -1113,30 +1118,64 @@ void DBFRedactorMainWindow::exportToMySQL() {
             }
 
             int OnePercent = DataForOneProc / 100 + 1;
+
+            //*-----------------
+            progressBar = new QProgressBar(this);
+            progressBar->setFormat(tr("Preparing. %p% to finish."));
+            progressBar->setRange(0, 100);
+            progressBar->setValue(0);
+            statusBar()->addWidget(progressBar, 1);
+
+            QStringList all_records;
+            all_records.clear();
+            int val = 0;
+            for (int i = 0; i<view->model()->rowCount(); i++) {
+                for (int j = 0; j < view->model()->columnCount(); j++) {
+                        const QVariant& value = view->model()->index(i, j).data(Qt::DisplayRole);
+                        //qDebug() << value;
+                        all_records << value.toString();
+                }
+                int work = i % OnePercent;
+
+                if ( !work) {
+                    progressBar->setValue(++val);
+                }
+            }
+            qDebug() << "All records count " << all_records.count();
+            delete progressBar;
+            progressBar = 0;
+
+            ///-----------------
+
             int maxSQL;
             maxSQL = dlg->get_max_sql();
             if (maxSQL >= rows) maxSQL=rows;
 
+            StopProcessDialog *stopDlg = new StopProcessDialog(NumberOfProc, this);
+
             for (int i = 0; i<NumberOfProc; i++)
             {
                 myThread[i] = new dbf2sql(dbconf,
-                                          view,
-                                          currentPage,
+                                          all_records,
+                                          view->model()->rowCount(),
+                                          view->model()->columnCount(),
+                                          curHeader.fieldsList,
                                           DataForOneProc,
                                           i,
                                           OnePercent,
                                           maxSQL,
                                           preparedString);
-                //connect(myThread[i], SIGNAL(some_work_done()), SLOT(update_progress()));
-                //connect(myThread[i], SIGNAL(finished()), SLOT(finish_progress()));
+                connect(myThread[i], SIGNAL(some_work_done()), stopDlg, SLOT(inc()));
+                connect(myThread[i], SIGNAL(finished()), stopDlg, SLOT(finished()));
+                connect(stopDlg, SIGNAL(rejected()), myThread[i], SLOT(stop()));
                 myThread[i]->start();
                 qDebug() << "And " << i << " was runed";
 
             }
+            stopDlg->exec();
+
 
         }
-    } else {
-        return;
     }
 qDebug() << "main proc fin";
 }

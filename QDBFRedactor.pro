@@ -44,7 +44,8 @@ HEADERS += src/core/dbfredactor.h \
     src/dialogs/convertToSQLdialog.h \
     src/core/dbconfig.h \
     src/core/mysql_worker.h \
-    src/core/dbf-thread.h
+    src/core/dbf-thread.h \
+    src/dialogs/stopProcessDialog.h
 SOURCES += src/core/dbfredactor.cpp \
     src/dbfredactordelegate.cpp \
     src/dbfredactormainwindow.cpp \
@@ -67,7 +68,8 @@ SOURCES += src/core/dbfredactor.cpp \
     src/3dparty/qtsingleapplication/src/qtsingleapplication.cpp \
     src/3dparty/qtsingleapplication/src/qtsinglecoreapplication.cpp \
     src/preferences/languagepreferences.cpp \
-    src/dialogs/convertToSQLdialog.cpp
+    src/dialogs/convertToSQLdialog.cpp \
+    src/dialogs/stopProcessDialog.cpp
 RESOURCES += resource.qrc
 TRANSLATIONS += share/translations/qdbfredactor_ru.ts
 

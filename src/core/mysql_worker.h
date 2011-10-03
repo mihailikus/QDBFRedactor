@@ -41,6 +41,7 @@ public:
             return false;
         } else {
             qDebug() << "Error in SQL " << this->db.lastError().text();
+            qDebug() << "QUERY is =================" << qr << "=============";
             return true;
         }
     }
